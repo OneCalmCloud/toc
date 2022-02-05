@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>toc</title>
+  <style>
+    #nav h1,h2,h3,h4,h5,h6{
+      transition: all 1s;
+    }
+    .high_Light {
+      background-color: yellow;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="toc"></div>
+  <div id="nav">
+    <h2>标题1</h2>
+    <h3>标题1的内容1</h3>
+    <h4>标题1的内容2</h4>
+    <h5>标题1的内容3</h5>
+    <h1>标题2</h1>
+    <h2>标题2的内容1</h2>
+    <h3>标题2的内容2</h3>
+    <h4>标题2的内容3</h4>
+    <h5>标题2的内容4</h5>
+    <h6>标题2的内容5</h6>
+    <h2>标题2的内容6</h2>
+    <h1>标题3</h1>
+    <h2>标题3的内容1</h2>
+    <h2>标题3的内容2</h2>
+  </div>
+  <script>
+    var TOC = document.getElementById('toc');
+    var headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+
+    function tocRander(element, data) {
+      let ul = document.createElement('UL')
+
+      let parse = arr => {
+        arr.forEach(item => {
+          var link = document.createElement('A');
+          link.appendChild(document.createTextNode(item.text))
+          var li = document.createElement('LI');
+          var link = document.createElement('A');
+
+          link.addEventListener('click', function (e) {
+            scrollTo({
+              top: item.el.offsetTop,
+              behavior: 'smooth'
+            });
+            let elClass = item.el.className;
+            item.el.className = `${elClass} high_Light`;
+            setTimeout(() => {
+              item.el.className = elClass;
+            }, 1000);
+          })
+          link.appendChild(document.createTextNode(item.text))
+          li.appendChild(link);
+          ul.appendChild(li);
+          if (Array.isArray(item.children)) {
+            parse(item.children)
+          }
+        })
+      }
+      parse(data)
+      element.appendChild(ul);
+    }
+
+    function DocToToc(content) {
+      let con = Array.from(content)
+      let list = []
+      let pointer = list;
+      let last_level = 0
+      let parent_level = 0;
+      con.map((p, i) => {
+        let level = p.tagName.substr(1, 1)
+        if (i == 0) {
+          parent_level = level
+          list.push({
+            el: p,
+            level: level,
+            text: p.textContent
+          })
+          last_level = level;
+          return
+        }
+        if (parent_level < level) {
+          let ft = level - parent_level
+          pointer = list[list.length - 1];
+          for (let i = 1; i < ft; i++) {
+            pointer = pointer.children[pointer.children.length - 1]
+          }
+          if (pointer.children) {
+            pointer.children.push({
+              el: p,
+              level: level,
+              text: p.textContent,
+            });
+          } else {
+            pointer.children = [{
+              el: p,
+              level: level,
+              text: p.textContent,
+            }];
+          }
+
+        } else {
+          parent_level = p.tagName.substr(1, 1);
+          pointer = list
+          list.push({
+            el: p,
+            level: level,
+            text: p.textContent
+          })
+        }
+        last_level = level;
+      })
+      return list
+    }
+    var list = DocToToc(headings)
+    tocRander(TOC, list)
+    console.log(list)
+  </script>
+</body>
+
+</html>
